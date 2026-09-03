@@ -1,0 +1,93 @@
+0001:  import java.awt.*;
+0002:  import java.awt.event.*;
+0003:  import java.io.*;
+0004:  import java.net.*;
+0005:  import javax.swing.*;
+0006:  
+0007:+ public class CaesarClient extends JFrame implements ActionListener {
+0008:  
+0009:+     public static void main(String[] args) {
+0010:          new CaesarClient();
+0011:-     }
+0012:  
+0013:      JTextArea textArea = new JTextArea(8, 30);
+0014:      JTextField inputField = new JTextField(20);
+0015:      JButton button = new JButton("暗号化して送信");
+0016:  
+0017:      Socket socket;
+0018:      PrintWriter writer;
+0019:      BufferedReader reader;
+0020:      int key;
+0021:  
+0022:+     CaesarClient() {
+0023:          setTitle("シーザー暗号 送信クライアント");
+0024:          setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+0025:  
+0026:          textArea.setEditable(false);
+0027:          JScrollPane scrollPane = new JScrollPane(textArea);
+0028:          getContentPane().add(scrollPane);
+0029:  
+0030:          JPanel panel = new JPanel();
+0031:          panel.add(new JLabel("平文:"));
+0032:          panel.add(inputField);
+0033:          panel.add(button);
+0034:          getContentPane().add(BorderLayout.SOUTH, panel);
+0035:  
+0036:          button.addActionListener(this);
+0037:  
+0038:          setSize(450, 250);
+0039:          setVisible(true);
+0040:  
+0041:+         try {
+0042:              socket = new Socket("127.0.0.1", 5000);
+0043:              textArea.append("サーバーに接続しました。\r\n");
+0044:  
+0045:              writer = new PrintWriter(socket.getOutputStream(), true);
+0046:              reader = new BufferedReader(
+0047:                  new InputStreamReader(socket.getInputStream()));
+0048:  
+0049:              key = Integer.parseInt(reader.readLine());
+0050:              textArea.append("サーバーから鍵を受信しました: " + key + "\r\n");
+0051:  
+0052:*         } catch (IOException e) {
+0053:              textArea.append("エラー: " + e + "\r\n");
+0054:-         }
+0055:-     }
+0056:  
+0057:+     public void actionPerformed(ActionEvent ae) {
+0058:+         try {
+0059:              String message = inputField.getText();
+0060:              String encrypted = encrypt(message, key);
+0061:              textArea.append("平文        : " + message + "\r\n");
+0062:              textArea.append("暗号化した文字列: " + encrypted + "\r\n");
+0063:  
+0064:              writer.println(encrypted);
+0065:              textArea.append("暗号文をサーバーに送信しました。\r\n");
+0066:  
+0067:              reader.close();
+0068:              writer.close();
+0069:              socket.close();
+0070:              textArea.append("通信を終了しました。\r\n");
+0071:  
+0072:              button.setEnabled(false);
+0073:  
+0074:*         } catch (IOException e) {
+0075:              textArea.append("エラー: " + e + "\r\n");
+0076:-         }
+0077:-     }
+0078:  
+0079:+     static String encrypt(String text, int key) {
+0080:          StringBuilder result = new StringBuilder();
+0081:+         for (int i = 0; i < text.length(); i++) {
+0082:              char c = text.charAt(i);
+0083:+             if (c >= 'a' && c <= 'z') {
+0084:                  result.append((char) ((c - 'a' + key) % 26 + 'a'));
+0085:*             } else if (c >= 'A' && c <= 'Z') {
+0086:                  result.append((char) ((c - 'A' + key) % 26 + 'A'));
+0087:*             } else {
+0088:                  result.append(c);
+0089:-             }
+0090:-         }
+0091:          return result.toString();
+0092:-     }
+0093:- }

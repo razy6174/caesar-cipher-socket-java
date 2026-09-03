@@ -1,0 +1,58 @@
+0001:  import java.io.*;
+0002:  import java.net.*;
+0003:  import java.security.SecureRandom;
+0004:  
+0005:+ public class CaesarServer {
+0006:  
+0007:+     public static void main(String[] args) {
+0008:+         try {
+0009:              ServerSocket serverSocket = new ServerSocket(5000);
+0010:              System.out.println("[サーバー] 起動しました。クライアントの接続を待っています...");
+0011:  
+0012:              Socket socket = serverSocket.accept();
+0013:              System.out.println("[サーバー] クライアントが接続しました。");
+0014:  
+0015:              PrintWriter writer =
+0016:                  new PrintWriter(socket.getOutputStream(), true);
+0017:              BufferedReader reader = new BufferedReader(
+0018:                  new InputStreamReader(socket.getInputStream()));
+0019:  
+0020:              SecureRandom random = new SecureRandom();
+0021:              int key = random.nextInt(25) + 1;
+0022:              System.out.println("[サーバー] 生成した鍵（ずらす数）: " + key);
+0023:  
+0024:              writer.println(key);
+0025:              System.out.println("[サーバー] 鍵をクライアントに送信しました。");
+0026:  
+0027:              String encrypted = reader.readLine();
+0028:              System.out.println("[サーバー] 受信した暗号文: " + encrypted);
+0029:  
+0030:              String decrypted = decrypt(encrypted, key);
+0031:              System.out.println("[サーバー] 復号した平文  : " + decrypted);
+0032:  
+0033:              reader.close();
+0034:              writer.close();
+0035:              socket.close();
+0036:              serverSocket.close();
+0037:              System.out.println("[サーバー] 通信を終了しました。");
+0038:  
+0039:*         } catch (IOException e) {
+0040:              System.out.println(e);
+0041:-         }
+0042:-     }
+0043:  
+0044:+     static String decrypt(String text, int key) {
+0045:          StringBuilder result = new StringBuilder();
+0046:+         for (int i = 0; i < text.length(); i++) {
+0047:              char c = text.charAt(i);
+0048:+             if (c >= 'a' && c <= 'z') {
+0049:                  result.append((char) ((c - 'a' - key + 26) % 26 + 'a'));
+0050:*             } else if (c >= 'A' && c <= 'Z') {
+0051:                  result.append((char) ((c - 'A' - key + 26) % 26 + 'A'));
+0052:*             } else {
+0053:                  result.append(c);
+0054:-             }
+0055:-         }
+0056:          return result.toString();
+0057:-     }
+0058:- }
